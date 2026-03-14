@@ -124,11 +124,14 @@ export function KnowledgeGraph({
       target: edge.target
     }));
 
-    const simulation = forceSimulation(simulationNodes)
-      .force("charge", forceManyBody().strength((node) => (node.kind === "note" ? -170 : -520)))
+    const simulation = forceSimulation<SimulationNode>(simulationNodes)
+      .force(
+        "charge",
+        forceManyBody<SimulationNode>().strength((node) => (node.kind === "note" ? -170 : -520))
+      )
       .force(
         "link",
-        forceLink(simulationEdges)
+        forceLink<SimulationNode, SimulationEdge>(simulationEdges)
           .id((node) => node.id)
           .distance((edge) => {
             const source = typeof edge.source === "string" ? edge.source : edge.source.id;
@@ -144,7 +147,7 @@ export function KnowledgeGraph({
       .force("center", forceCenter(CENTER_X, CENTER_Y))
       .force(
         "topic-ring",
-        forceRadial(
+        forceRadial<SimulationNode>(
           250,
           CENTER_X,
           CENTER_Y
@@ -152,31 +155,29 @@ export function KnowledgeGraph({
       )
       .force(
         "topic-anchor-x",
-        forceX((node) => (node.kind === "topic" ? anchors.get(node.id)?.x ?? CENTER_X : CENTER_X)).strength(
-          (node) => (node.kind === "topic" ? 0.38 : 0.02)
-        )
+        forceX<SimulationNode>((node) => (node.kind === "topic" ? anchors.get(node.id)?.x ?? CENTER_X : CENTER_X))
+          .strength((node) => (node.kind === "topic" ? 0.38 : 0.02))
       )
       .force(
         "topic-anchor-y",
-        forceY((node) => (node.kind === "topic" ? anchors.get(node.id)?.y ?? CENTER_Y : CENTER_Y)).strength(
-          (node) => (node.kind === "topic" ? 0.38 : 0.02)
-        )
+        forceY<SimulationNode>((node) => (node.kind === "topic" ? anchors.get(node.id)?.y ?? CENTER_Y : CENTER_Y))
+          .strength((node) => (node.kind === "topic" ? 0.38 : 0.02))
       )
       .force(
         "note-center-x",
-        forceX((node) => (node.kind === "note" ? CENTER_X : CENTER_X)).strength((node) =>
+        forceX<SimulationNode>((node) => (node.kind === "note" ? CENTER_X : CENTER_X)).strength((node) =>
           node.kind === "note" ? 0.04 : 0
         )
       )
       .force(
         "note-center-y",
-        forceY((node) => (node.kind === "note" ? CENTER_Y : CENTER_Y)).strength((node) =>
+        forceY<SimulationNode>((node) => (node.kind === "note" ? CENTER_Y : CENTER_Y)).strength((node) =>
           node.kind === "note" ? 0.04 : 0
         )
       )
       .force(
         "collision",
-        forceCollide().radius((node) =>
+        forceCollide<SimulationNode>().radius((node) =>
           node.kind === "identity" ? 110 : node.kind === "topic" ? 70 : 26
         )
       )
