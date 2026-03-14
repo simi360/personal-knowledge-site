@@ -74,6 +74,17 @@ function getSimulationNodeId(node: string | number | SimulationNode) {
   return node.id;
 }
 
+function getEdgeData(edge: Edge<GraphEdgeData>): GraphEdgeData {
+  if (edge.data) {
+    return edge.data;
+  }
+
+  return {
+    kind: "topic-note",
+    sharedTags: []
+  };
+}
+
 function buildAnchorMap(nodes: Node<GraphNodeData>[]) {
   const topics = nodes.filter((node) => node.data.kind === "topic");
   const anchors = new Map<string, { x: number; y: number }>();
@@ -341,6 +352,7 @@ export function KnowledgeGraph({
       });
 
       const edges: Edge<GraphEdgeData>[] = visibleEdges.map((edge) => {
+        const edgeData = getEdgeData(edge);
         const relatedToPinnedTopic =
           selectedNodeId === null
             ? true
@@ -350,6 +362,7 @@ export function KnowledgeGraph({
 
         return {
           ...edge,
+          data: edgeData,
           style: {
             ...edge.style,
             opacity:
@@ -392,20 +405,21 @@ export function KnowledgeGraph({
     }));
 
     const edges: Edge<GraphEdgeData>[] = visibleEdges.map((edge) => {
+      const edgeData = getEdgeData(edge);
       const active = edge.source === hoveredNode.id || edge.target === hoveredNode.id;
       const related = relatedNodeIds.has(edge.source) && relatedNodeIds.has(edge.target);
 
       return {
         ...edge,
         data: {
-          ...edge.data,
+          ...edgeData,
           isActive: active,
           isDimmed: !related
         },
         style: {
           ...edge.style,
           stroke: active
-            ? edge.data.kind === "identity-topic"
+            ? edgeData.kind === "identity-topic"
               ? "rgba(153, 246, 228, 0.88)"
               : "rgba(196, 241, 255, 0.92)"
             : edge.style?.stroke,
