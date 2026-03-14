@@ -50,71 +50,77 @@ export function buildGraph(notes: Note[]): NoteGraph {
   const centerY = 430;
   const topicRadius = Math.max(240, 180 + tags.length * 12);
 
-  const nodes: GraphNode[] = [
-    {
-      id: IDENTITY_NODE_ID,
-      type: "note",
-      position: { x: centerX, y: centerY },
-      data: {
-        kind: "identity",
-        label: "Harsimran Kaur",
-        excerpt: "Full-Stack Software Engineer building software and documenting what she learns.",
-        tags: ["notebook", "engineering", "learning"],
-        connectionCount: tags.length,
-        revealDelay: 0.2
-      }
-    },
-    ...tags.map((tag, index) => ({
-      id: `topic:${tag}`,
-      type: "note",
-      position: seededPosition(index, tags.length, topicRadius, centerX, centerY),
-      data: {
-        kind: "topic" as const,
-        label: tag,
-        slug: tag,
-        excerpt: `${tagFrequency.get(tag)} notes connected through ${tag}.`,
-        tags: [tag],
-        topic: tag,
-        connectionCount: tagFrequency.get(tag),
-        revealDelay: 0.55 + index * 0.08
-      }
-    })),
-    ...notes.map((note, index) => {
-      const primaryTopic = [...note.tags].sort((a, b) => {
-        const frequencyDelta = (tagFrequency.get(b) ?? 0) - (tagFrequency.get(a) ?? 0);
+  const identityNode: GraphNode = {
+    id: IDENTITY_NODE_ID,
+    type: "note",
+    position: { x: centerX, y: centerY },
+    data: {
+      kind: "identity",
+      label: "Harsimran Kaur",
+      excerpt: "Full-Stack Software Engineer building software and documenting what she learns.",
+      tags: ["notebook", "engineering", "learning"],
+      connectionCount: tags.length,
+      revealDelay: 0.2
+    }
+  };
 
-        return frequencyDelta || a.localeCompare(b);
-      })[0];
-      const base = primaryTopic
-        ? seededPosition(tags.indexOf(primaryTopic), tags.length, topicRadius + 150, centerX, centerY)
-        : { x: centerX + 220, y: centerY };
+  const topicNodes: GraphNode[] = tags.map((tag, index) => ({
+    id: `topic:${tag}`,
+    type: "note",
+    position: seededPosition(index, tags.length, topicRadius, centerX, centerY),
+    data: {
+      kind: "topic",
+      label: tag,
+      slug: tag,
+      excerpt: `${tagFrequency.get(tag)} notes connected through ${tag}.`,
+      tags: [tag],
+      topic: tag,
+      connectionCount: tagFrequency.get(tag),
+      revealDelay: 0.55 + index * 0.08
+    }
+  }));
 
-      return {
-        id: note.slug,
-        type: "note",
-        position: {
-          x: base.x + ((index % 5) - 2) * 44,
-          y: base.y + ((index % 4) - 1.5) * 36
-        },
-        data: {
-          kind: "note",
-          label: note.title,
+  const noteNodes: GraphNode[] = notes.map((note, index) => {
+    const primaryTopic = [...note.tags].sort((a, b) => {
+      const frequencyDelta = (tagFrequency.get(b) ?? 0) - (tagFrequency.get(a) ?? 0);
+
+      return frequencyDelta || a.localeCompare(b);
+    })[0];
+    const base = primaryTopic
+      ? seededPosition(tags.indexOf(primaryTopic), tags.length, topicRadius + 150, centerX, centerY)
+      : { x: centerX + 220, y: centerY };
+
+    return {
+      id: note.slug,
+      type: "note",
+      position: {
+        x: base.x + ((index % 5) - 2) * 44,
+        y: base.y + ((index % 4) - 1.5) * 36
+      },
+      data: {
+        kind: "note",
+        label: note.title,
+        slug: note.slug,
+        excerpt: note.excerpt,
+        tags: note.tags,
+        topicIds: note.tags.map((tag) => `topic:${tag}`),
+        connectionCount: note.tags.length,
+        revealDelay: 1.15 + index * 0.04,
+        note: {
           slug: note.slug,
+          title: note.title,
           excerpt: note.excerpt,
           tags: note.tags,
-          topicIds: note.tags.map((tag) => `topic:${tag}`),
-          connectionCount: note.tags.length,
-          revealDelay: 1.15 + index * 0.04,
-          note: {
-            slug: note.slug,
-            title: note.title,
-            excerpt: note.excerpt,
-            tags: note.tags,
-            date: note.date
-          }
+          date: note.date
         }
-      };
-    })
+      }
+    };
+  });
+
+  const nodes: GraphNode[] = [
+    identityNode,
+    ...topicNodes,
+    ...noteNodes
   ];
 
   const edges: Edge<GraphEdgeData>[] = tags.map((tag) => ({
