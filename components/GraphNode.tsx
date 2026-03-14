@@ -83,8 +83,14 @@ export function GraphNode({ data, selected }: NodeProps<GraphNodeData>) {
   );
 
   if (isNote) {
+    const slug = data.note?.slug;
+
+    if (!slug) {
+      return <div className="cursor-pointer">{nodeBody}</div>;
+    }
+
     return (
-      <Link href={`/notes/${data.note.slug}`} className="block cursor-pointer focus:outline-none">
+      <Link href={`/notes/${slug}`} className="block cursor-pointer focus:outline-none">
         {nodeBody}
       </Link>
     );
