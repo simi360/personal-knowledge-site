@@ -62,6 +62,18 @@ const nodeTypes = {
 const CENTER_X = 720;
 const CENTER_Y = 430;
 
+function getSimulationNodeId(node: string | number | SimulationNode) {
+  if (typeof node === "string") {
+    return node;
+  }
+
+  if (typeof node === "number") {
+    return String(node);
+  }
+
+  return node.id;
+}
+
 function buildAnchorMap(nodes: Node<GraphNodeData>[]) {
   const topics = nodes.filter((node) => node.data.kind === "topic");
   const anchors = new Map<string, { x: number; y: number }>();
@@ -134,12 +146,12 @@ export function KnowledgeGraph({
         forceLink<SimulationNode, SimulationEdge>(simulationEdges)
           .id((node) => node.id)
           .distance((edge) => {
-            const source = typeof edge.source === "string" ? edge.source : edge.source.id;
+            const source = getSimulationNodeId(edge.source);
 
             return source.startsWith("identity:") ? 210 : 125;
           })
           .strength((edge) => {
-            const source = typeof edge.source === "string" ? edge.source : edge.source.id;
+            const source = getSimulationNodeId(edge.source);
 
             return source.startsWith("identity:") ? 0.42 : 0.85;
           })
